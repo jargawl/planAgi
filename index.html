@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Plan Agi — Powrót do Formy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1c1b1a;
+    --surface: #262422;
+    --surface-2: #2e2b28;
+    --line: #3a3633;
+    --rust: #c1442d;
+    --rust-dim: #7d2e1e;
+    --chalk: #e8dcc0;
+    --olive: #7f9169;
+    --text: #f3efe7;
+    --text-dim: #a89f93;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(193,68,45,0.10), transparent 45%),
+      radial-gradient(circle at 100% 30%, rgba(232,220,192,0.05), transparent 40%);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    padding-bottom: 60px;
+  }
+  .mono{font-family:'JetBrains Mono', monospace;}
+  header.top{
+    padding: 28px 20px 18px;
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index:20;
+    background: rgba(28,27,26,0.92);
+    backdrop-filter: blur(6px);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color: var(--rust); margin:0 0 6px;
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    font-size: 28px;
+    margin:0;
+    line-height:1.05;
+  }
+  h1 span{color: var(--rust);}
+  .sub{color:var(--text-dim); font-size:13.5px; margin-top:6px; max-width:520px;}
+
+  .progress-wrap{ margin:20px 20px 4px; }
+  .progress-label{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); margin-bottom:7px; }
+  .progress-label span:first-child{ text-transform:uppercase; letter-spacing:.06em; }
+  .progress-track{ height:8px; border-radius:4px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--rust), var(--olive)); transition: width .4s ease; }
+
+  .banner{
+    margin: 18px 20px 0;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-left: 3px solid var(--olive);
+    border-radius: 8px;
+    font-size: 12.8px;
+    color: var(--text-dim);
+    line-height:1.5;
+  }
+  .banner b{color: var(--chalk);}
+
+  .rule-box{
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .rule-box .rt{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.04em; font-size:12px; color:var(--rust); margin-bottom:6px; display:block;}
+  .rule-box ul{margin:6px 0 0; padding-left:18px; color:var(--text-dim);}
+  .rule-box li{margin-bottom:3px;}
+  .rule-box li b{color:var(--text);}
+  .phase-track{ display:flex; gap:3px; margin-top:2px; }
+  .phase-seg{ flex:1; height:7px; border-radius:4px; background: var(--surface-2); border:1px solid var(--line); position:relative; }
+  .phase-seg.active{ background: var(--rust); border-color: var(--rust-dim); }
+  .phase-seg.past{ background: var(--olive); border-color:#566a44; opacity:.55; }
+  .phase-legend{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--text-dim); margin-top:5px; }
+
+  .filters{ display:flex; gap:8px; padding: 18px 20px 6px; overflow-x:auto; }
+  .chip{
+    font-family:'JetBrains Mono', monospace; font-size:12px;
+    padding:7px 13px; border-radius:20px; border:1px solid var(--line);
+    background:var(--surface); color:var(--text-dim); white-space:nowrap;
+  }
+  .chip.active{ background:var(--chalk); color:#1c1b1a; border-color:var(--chalk); font-weight:700;}
+
+  main{ padding: 8px 20px 30px; }
+
+  .week-block{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .week-head{ padding:15px 16px; display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .week-head-left{ flex:1; min-width:0; }
+  .week-num{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:15px; letter-spacing:.02em; }
+  .week-dates{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+  .week-phase{
+    font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+    color: var(--rust); border:1px solid var(--rust-dim); padding:4px 8px; border-radius:6px; white-space:nowrap;
+  }
+  .week-block.today-week{ border-color: var(--rust); }
+  .week-body{ max-height:0; overflow:hidden; transition:max-height .4s ease; border-top:1px solid transparent; padding: 0 10px; }
+  .week-block.open .week-body{ max-height:8000px; border-top-color:var(--line); padding:10px; }
+  .week-block.open .week-head .chev{ transform:rotate(180deg); }
+
+  .rest-row{
+    display:flex; align-items:center; gap:12px; padding:12px 10px;
+    border-bottom:1px solid var(--line); opacity:.6;
+  }
+  .rest-row:last-child{ border-bottom:none; }
+  .rest-date{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); flex:0 0 78px; }
+  .rest-label{ font-size:12.5px; color:var(--text-dim); }
+
+  .day-label{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--rust); text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px; }
+  .card.required .day-label{ color: var(--olive); }
+  .card{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .card-head{ padding:16px 16px 14px; display:flex; gap:12px; align-items:center; cursor:pointer; }
+  .check-toggle{
+    flex:0 0 auto; width:30px; height:30px; border-radius:50%;
+    border:2px solid var(--line); background: var(--surface-2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:transparent; transition: all .2s ease;
+  }
+  .check-toggle.checked{ background: var(--rust); border-color: var(--rust); color:#fff; }
+  .card.required .check-toggle.checked{ background: var(--olive); border-color:#566a44; }
+  .card.done-card{ border-color: var(--olive); }
+  .tag-badge{
+    flex:0 0 auto; width:40px; height:40px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:16px;
+    background: var(--surface-2); color: var(--rust); border:1px solid var(--line);
+  }
+  .card.required .tag-badge{ color: var(--olive); }
+  .card-head-text{flex:1; min-width:0;}
+  .card-title{font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:16.5px; letter-spacing:.01em;}
+  .card-meta{font-size:12px; color:var(--text-dim); margin-top:3px;}
+  .card-meta .dot{margin:0 6px;}
+  .chev{ align-self:center; color:var(--text-dim); font-size:12px; transition:transform .25s; }
+  .card.open .chev{ transform:rotate(180deg); }
+
+  .card-body{ max-height:0; overflow:hidden; transition:max-height .4s ease; border-top:1px solid transparent;}
+  .card.open .card-body{ max-height:4000px; border-top-color:var(--line); }
+
+  .warmup{ padding:12px 16px; font-size:12.5px; color:var(--text-dim); background:var(--surface-2); }
+  .warmup b{color:var(--chalk); font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+
+  .ex{ padding:13px 16px; border-bottom:1px solid var(--line); }
+  .ex:last-of-type{ border-bottom:none; }
+  .ex-name{ font-size:14px; font-weight:600; margin-bottom:6px; }
+  .ex-stats{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px;}
+  .stat{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--chalk);
+    background: rgba(232,220,192,0.08); border:1px solid var(--line);
+    padding:3px 8px; border-radius:6px;
+  }
+  .ex-cue{ font-size:12px; color:var(--text-dim); line-height:1.5; }
+  .ex-cue b{color:var(--text);}
+
+  .cardio-block{ padding:13px 16px; background: rgba(193,68,45,0.07); border-top:1px dashed var(--line);}
+  .cardio-block .lbl{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--rust); display:block; margin-bottom:4px;}
+  .cardio-block p{margin:0; font-size:12.8px; color:var(--text-dim); line-height:1.5;}
+
+  .card-actions{ padding:4px 16px 16px; display:flex; align-items:center; gap:8px; }
+  .status-line{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:8px; }
+  .status-line .dot-ind{ width:8px; height:8px; border-radius:50%; background: var(--line); }
+  .status-line.on .dot-ind{ background: var(--olive); }
+  .status-line.on{ color: var(--chalk); }
+
+  footer{ padding: 10px 20px 30px; text-align:center; }
+  footer .reset{
+    background:none; border:1px solid var(--line); color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:9px 16px; border-radius:20px;
+  }
+  footer p{ font-size:11px; color:#5f5952; margin-top:16px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="eyebrow">Plan treningowy · siłownia Zdrofit</p>
+  <h1>Powrót <span>do formy</span></h1>
+  <p class="sub">Priorytet: silne, jędrne pośladki i płaski brzuch. Trening bez elementów dynamicznych (bez zarzutów, podrzutów, rwań i pełnych przysiadów) — z troską o odcinek lędźwiowy.</p>
+
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Postęp programu</span><span id="progressCount" class="mono">0 / 0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</header>
+
+<div class="rule-box" id="programBox">
+  <span class="rt">Program 01.08.2026 – 01.11.2026 · 13 tygodni</span>
+  <div id="programPhaseLine" style="margin-bottom:8px; color:var(--chalk); font-size:13px;"></div>
+  <div class="phase-track" id="phaseTrack"></div>
+  <div id="programPhaseDesc" style="margin-top:10px; color:var(--text-dim);"></div>
+</div>
+
+<div class="banner">
+  <b>Zasada bezpieczeństwa:</b> przy bólu, mrowieniu lub drętwieniu w nogach — przerwij ćwiczenie. Ten plan nie zastępuje konsultacji z fizjoterapeutą; warto sprawdzić stan mięśni brzucha (rozejście) przed intensywną pracą nad core.
+</div>
+
+<div class="rule-box">
+  <span class="rt">Jak to działa</span>
+  Poniżej masz gotowy kalendarz na cały program — każdy dzień od 01.08 do 01.11.2026 ma przypisany konkretny trening (albo dzień wolny). Żeby nie było "w kółko to samo":
+  <ul>
+    <li><b>Poniedziałek / Środa / Piątek</b> — trening siłowy A, B lub C — kolejność rotuje co 3 tygodnie, więc np. Poniedziałek nie zawsze jest tym samym treningiem</li>
+    <li><b>Sobota</b> — bieganie w terenie</li>
+    <li><b>Niedziela</b> — Regeneracja (mobility + sauna), obowiązkowo</li>
+    <li><b>Wtorek / Czwartek</b> — dni wolne</li>
+  </ul>
+  Konkretny dzień Ci nie pasuje? Możesz go swobodnie przesunąć — kalendarz to szkielet, nie sztywna wyrocznia.
+</div>
+
+<div class="filters" id="filters">
+  <div class="chip active" data-filter="all">Wszystkie</div>
+  <div class="chip" data-filter="R">Regeneracja</div>
+  <div class="chip" data-filter="A">Trening A</div>
+  <div class="chip" data-filter="B">Trening B</div>
+  <div class="chip" data-filter="C">Trening C</div>
+  <div class="chip" data-filter="run">Bieganie</div>
+</div>
+
+<main id="scheduleContainer"></main>
+
+<footer>
+  <button class="reset" id="resetBtn">↺ Wyzeruj cały postęp programu</button>
+  <p>Zapisujemy postępy lokalnie w tym urządzeniu (bez konta, bez internetu).<br>Zwiększaj obciążenie o 2,5–5 kg, gdy wykonasz górny zakres powtórzeń we wszystkich seriach z zapasem 2 powtórzeń (RPE ≤ 8).</p>
+</footer>
+
+<script>
+const WORKOUTS = [
+  {
+    id: 'R', badge:'R', filter:'R', required:true,
+    title: 'Regeneracja — Mobility + Sauna',
+    meta: '~70–80 min · obowiązkowy 1×/tydz.',
+    warmup: 'Marsz na bieżni z nachyleniem 8–10%, 12–15 min, tętno 110–120 — rozgrzej ciało przed rozciąganiem i mobilizacją.',
+    exercises: [
+      {name:'Rolowanie (foam roller): łydki, uda przód/tył, pośladki, IT band, plecy górne', sets:'—', reps:'45–60 sek / partia', rest:'—', load:'Delikatny nacisk', cue:'Odcinek lędźwiowy rolujemy bardzo delikatnie lub pomijamy przy dyskomforcie. Cała runda ok. 10 min.'},
+      {name:'90/90 Hip Switch', sets:'3', reps:'8 / stronę', rest:'20 sek', load:'Ciężar ciała', cue:'Ruch powolny, kontrolowany — biodra, nie plecy, wykonują pracę.'},
+      {name:'World’s Greatest Stretch', sets:'3', reps:'5 / stronę', rest:'20 sek', load:'Ciężar ciała', cue:'Otwieraj klatkę piersiową w rotacji, plecy w neutralnej pozycji.'},
+      {name:'Kocia grzbiet–krowa (Cat–Cow)', sets:'2', reps:'10', rest:'—', load:'Ciężar ciała', cue:'Ruch płynny, zsynchronizowany z oddechem.'},
+      {name:'Mobilizacja bioder na taśmie (band distraction) lub krążenia w leżeniu', sets:'2', reps:'8 / stronę', rest:'20 sek', load:'Ciężar ciała', cue:'Powolne, kontrolowane krążenia — jeśli czujesz ciągnięcie w plecach, zmniejsz zakres.'},
+      {name:'Rozciąganie statyczne: zginacze bioder, dwugłowy uda, pośladkowy, gruszkowaty, LG/płytki', sets:'4', reps:'30–40 sek / partia', rest:'—', load:'Do lekkiego napięcia, bez bólu', cue:'Oddychaj spokojnie, nie odbijaj w rozciąganiu. Cała runda ok. 12–15 min.'},
+    ],
+    cardioNote: 'Sauna: 3 wejścia po 12–15 min, z przerwami 5 min na schłodzenie i nawodnienie między wejściami. Uzupełnij elektrolity po sesji. Łącznie z przebieraniem i odpoczynkiem cała sesja regeneracyjna zajmuje 70–80 min.'
+  },
+  {
+    id:'A', badge:'A', filter:'A', required:false,
+    title:'Żelazna Pupa — dominacja bioder',
+    meta:'~75–85 min · maszyny / linki',
+    warmup:'8–10 min: rower stacjonarny lekkie tempo (4 min) + krążenia bioder + mostki bez obciążenia 2×15 + band walk (jeśli dostępna guma) 2×10/stronę (aktywacja pośladków).',
+    exercises:[
+      {name:'Hip Thrust (maszyna dedykowana lub Smith)', sets:'5', reps:'10–12', rest:'90 sek', load:'RPE 8', cue:'Tempo 1-2-2: pauza 2 sek na górze z mocnym ściśnięciem pośladków. Biodra w lekkiej retrowersji — bez przeprostu lędźwi na górze.'},
+      {name:'Odwodzenie bioder — Hip Abduction Machine', sets:'4', reps:'15–20', rest:'60 sek', load:'RPE 8–9, ostatnia seria dropset (-20%)', cue:'Plecy oparte o siedzisko, ruch płynny bez szarpania.'},
+      {name:'Cable Kick-Back (wyciąg, kopnięcie w tył)', sets:'3', reps:'12 / nogę', rest:'60 sek', load:'RPE 8', cue:'Biodro nieruchome — pracuje wyłącznie noga robocza, bez huśtania.'},
+      {name:'Superseria: Glute Bridge Machine + Adduction Machine', sets:'3', reps:'15 + 15', rest:'75 sek po rundzie', load:'RPE 8', cue:'Wykonaj obie stacje jedna po drugiej bez przerwy, dopiero potem odpoczynek — świetne domięśniowe wykończenie pośladków i przywodzicieli.'},
+      {name:'Pull-Through na wyciągu dolnym', sets:'3', reps:'12–15', rest:'60–75 sek', load:'RPE 7–8', cue:'Ruch inicjowany z bioder, plecy cały czas neutralne.'},
+      {name:'RDL na Smith / z hantlami (lekki ciężar)', sets:'3', reps:'10', rest:'90 sek', load:'RPE 7 — lekko', cue:'Zakres ograniczony do wysokości, przy której plecy zostają neutralne (zwykle do poł. łydki). Przy najmniejszym dyskomforcie w L-S → zamień na dodatkową serię Pull-Through.'},
+      {name:'Pallof Press (wyciąg, obunóż)', sets:'3', reps:'10 / stronę', rest:'45 sek', load:'RPE 7', cue:'Priorytet: opór rotacji tułowia. Ruch powolny, bez szarpania.'},
+      {name:'Plank klasyczny', sets:'3', reps:'30–45 sek', rest:'45 sek', load:'Ciężar ciała', cue:'Miednica podkręcona, bez zapadania w odcinku lędźwiowym.'},
+    ],
+    cardioNote:'Finisher: Stepper (schody), 15–18 min interwałów — 1 min umiarkowanie / 1 min szybciej ×7–8. Cel: tętno końcowe 140–150. Doliczając rozgrzewkę, przejścia między stacjami i wodę, cały trening zajmuje 75–85 min.'
+  },
+  {
+    id:'B', badge:'B', filter:'B', required:false,
+    title:'Full Body + Płaski Brzuch',
+    meta:'~70–80 min · maszyny / linki',
+    warmup:'8 min orbitrek + mobilizacja obręczy barkowej i odcinka piersiowego kręgosłupa + 10 oddechów przeponowych (aktywacja głębokich mięśni core).',
+    exercises:[
+      {name:'Wyciskanie nogami — Leg Press (stopy szeroko, wysoko)', sets:'4', reps:'10–12', rest:'90 sek', load:'RPE 8', cue:'Ustawienie stóp wysoko i szeroko = więcej pośladków. Kolana do ok. 90°, miednica cały czas przy oparciu.'},
+      {name:'Przysiad Bułgarski na Smith (tył na podwyższeniu)', sets:'3', reps:'10 / nogę', rest:'75 sek', load:'RPE 7–8', cue:'Zakres płytki–umiarkowany, tylko do bezbolesnej głębokości. Tułów pionowo, kolano nie wychodzi mocno przed palce.'},
+      {name:'Wyciąg dolny — Seated Cable Row', sets:'3', reps:'10–12', rest:'60 sek', load:'RPE 7', cue:'Plecy proste, łopatki ściągnięte na końcu ruchu — buduje stabilny gorset wokół kręgosłupa.'},
+      {name:'Wyciąg górny — Lat Pulldown', sets:'3', reps:'10–12', rest:'60 sek', load:'RPE 7', cue:'Utrzymanie sylwetki — ramiona to nie priorytet, więc ciężar umiarkowany.'},
+      {name:'Wyciskanie barków — maszyna (opcjonalnie)', sets:'2', reps:'12', rest:'45–60 sek', load:'RPE 6–7', cue:'Krótka seria uzupełniająca, można pominąć jeśli brakuje czasu.'},
+      {name:'Dead Bug', sets:'3', reps:'10 / stronę', rest:'45 sek', load:'Ciężar ciała', cue:'Dolne plecy dociśnięte do maty przez cały ruch, wydech przy wyproście nogi/ręki.'},
+      {name:'Deska bokiem (Side Plank)', sets:'3', reps:'20–30 sek / stronę', rest:'45 sek', load:'Ciężar ciała', cue:'Biodro uniesione w linii z tułowiem, bez zapadania.'},
+      {name:'Pallof Press lub delikatny wyciąg brzucha na kolanach', sets:'3', reps:'10–12', rest:'45–60 sek', load:'RPE 7', cue:'Przed cięższą pracą nad prostym brzucha po 2 ciążach warto sprawdzić rozejście u fizjoterapeuty.'},
+      {name:'Bird-Dog (dokończenie core)', sets:'2', reps:'8 / stronę', rest:'30 sek', load:'Ciężar ciała', cue:'Powolnie, z pauzą 1–2 sek w wyproście.'},
+    ],
+    cardioNote:'Finisher: Spinning / rower stacjonarny, 20 min interwałów 30/30 (mocno / lekko). Z rozgrzewką i przejściami cały trening zajmuje 70–80 min.'
+  },
+  {
+    id:'C', badge:'C', filter:'C', required:false,
+    title:'Pośladki i Uda — praca jednostronna',
+    meta:'~65–75 min · maszyny / linki',
+    warmup:'8 min marsz z nachyleniem + krążenia bioder i kostek + 10 przysiadów do krzesła (bez obciążenia, aktywacja).',
+    exercises:[
+      {name:'Wykrok stacjonarny na Smith (reverse lunge w miejscu)', sets:'4', reps:'10 / nogę', rest:'75 sek', load:'RPE 7–8', cue:'Ruch kontrolowany, bez odbicia — to nie jest wykrok chodzony.'},
+      {name:'Step-Up na skrzynię / stopień', sets:'3', reps:'10 / nogę', rest:'75 sek', load:'RPE 7–8', cue:'Cały ciężar na nodze na stopniu, odpychaj się piętą, bez wybicia.'},
+      {name:'Uginanie nóg leżąc — Leg Curl', sets:'3', reps:'12–15', rest:'60 sek', load:'RPE 8', cue:'Biodra przyklejone do ławki przez cały ruch.'},
+      {name:'Hip Thrust jednonóż (na ławce/maszynie)', sets:'3', reps:'10 / nogę', rest:'75–90 sek', load:'RPE 7–8', cue:'Mniejszy ciężar niż w wersji obunóż — priorytet czucie mięśniowe, nie liczba kg.'},
+      {name:'Przywodziciele — Adduction Machine', sets:'3', reps:'15', rest:'60 sek', load:'RPE 8', cue:'Ruch płynny, bez trzaskania nogami na zamknięciu.'},
+      {name:'Wyprost nogi — Leg Extension (lekki ciężar, wysokie powtórzenia)', sets:'3', reps:'15–18', rest:'45–60 sek', load:'RPE 7', cue:'Kontroluj fazę opuszczania — 2 sek w dół.'},
+      {name:'Bird-Dog', sets:'3', reps:'8 / stronę', rest:'45 sek', load:'Ciężar ciała', cue:'Biodra nieruchome, kręgosłup neutralny — to ćwiczenie na stabilizację, nie na zakres ruchu.'},
+      {name:'Pallof Press', sets:'2', reps:'10 / stronę', rest:'45 sek', load:'RPE 7', cue:'Wykończenie core — powolny, kontrolowany opór rotacji.'},
+    ],
+    cardioNote:'Finisher: Bieżnia pod górkę (nachylenie 10–12%), 15–18 min — 2 min marsz/trucht umiarkowany / 1 min szybciej ×5–6. Cały trening z rozgrzewką i przejściami: 65–75 min.'
+  },
+  {
+    id:'run', badge:'⟶', filter:'run', required:false,
+    title:'Bieganie w terenie',
+    meta:'~65–75 min · opcjonalnie 1–2×/tydz.',
+    warmup:'10 min: marsz + trucht na rozgrzanie, dynamiczne krążenia stawów skokowych i bioder, wykroki chodzone bez obciążenia 2×8/nogę.',
+    exercises:[
+      {name:'Bieg w tempie konwersacyjnym (ciągły lub run/walk, jeśli wygodniej)', sets:'1', reps:'40–50 min', rest:'—', load:'Tempo, w którym możesz swobodnie rozmawiać', cue:'Wybieraj równy, płaski teren — unikaj nierówności i śliskich nawierzchni przy jakimkolwiek dyskomforcie w plecach. Jeśli dłuższy ciągły dystans nie jest jeszcze komfortowy, podziel na odcinki 8–10 min biegu / 2 min marszu.'},
+      {name:'Przebieżki (strides) — opcjonalnie, jeśli czujesz się dobrze', sets:'4–6', reps:'15 sek', rest:'pełny odpoczynek', load:'Szybko, ale kontrolowanie', cue:'Tylko na płaskim, równym odcinku, pod koniec biegu.'},
+      {name:'Rozciąganie po biegu: łydki, uda przód/tył, pośladkowy', sets:'1', reps:'10–15 min', rest:'—', load:'Do lekkiego napięcia', cue:'Nie pomijaj — to Twój czas na wyciszenie układu nerwowego po wysiłku.'},
+    ],
+    cardioNote:'Traktuj to jako zamiennik cardio danego dnia — nie dokładaj do ciężkiego treningu siłowego tego samego dnia przy dużym zmęczeniu. Priorytetem zawsze jest komfort pleców, nie czas na zegarku — możesz skrócić dystans, zachowując strukturę rozgrzewki i rozciągania.'
+  },
+];
+
+const PROGRAM_START = new Date(2026, 7, 1);   // 01.08.2026
+const PROGRAM_WEEKS = 13;                      // do ~01.11.2026
+const PHASES = [
+  { from:1, to:4,  name:'Faza I — Fundament i technika',
+    desc:'Cel: nauka wzorców ruchowych i pełna kontrola techniki, bez pośpiechu. Intensywność: RPE 6–7 (obniż podane RPE o 1 punkt względem kart ćwiczeń). Priorytet: jakość ruchu i komfort odcinka lędźwiowego, nie ciężar na sztandze.' },
+  { from:5, to:8,  name:'Faza II — Budowa siły',
+    desc:'Cel: systematyczny progres obciążeń. Zwiększaj ciężar na Hip Thrust i Leg Press o 2,5–5 kg, gdy wykonasz górny zakres powtórzeń we wszystkich seriach. Intensywność zgodna z kartami ćwiczeń (RPE 7–8).' },
+  { from:9, to:11, name:'Faza III — Intensyfikacja',
+    desc:'Cel: szczyt intensywności cyklu. Podnieś RPE o 1 punkt względem kart (do 8–9) i skróć przerwy na ćwiczeniach izolowanych o 10–15 sek. Zwracaj większą uwagę na sygnały zmęczenia — w razie potrzeby wróć do RPE z Fazy II.' },
+  { from:12, to:13, name:'Faza IV — Utrwalenie i deload',
+    desc:'Cel: obniżenie objętości przed podsumowaniem cyklu. Zdejmij jedną serię z każdego głównego ćwiczenia, obniż RPE do 6–7. Skoncentruj się na technice i pełnej regeneracji — to dobry moment na podsumowanie postępów z żoną.' },
+];
+
+function programWeekInfo(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(PROGRAM_START); start.setHours(0,0,0,0);
+  const diffDays = Math.floor((today - start) / 86400000);
+  const totalDays = PROGRAM_WEEKS * 7;
+  if(diffDays < 0) return { state:'before', weekNo:0 };
+  if(diffDays >= totalDays) return { state:'after', weekNo:PROGRAM_WEEKS };
+  const weekNo = Math.floor(diffDays/7) + 1;
+  return { state:'active', weekNo };
+}
+
+function phaseForWeek(weekNo){
+  return PHASES.find(p => weekNo >= p.from && weekNo <= p.to) || PHASES[0];
+}
+
+function fmtDate(d){
+  return d.toLocaleDateString('pl-PL', {day:'2-digit', month:'2-digit', year:'numeric'});
+}
+
+function renderProgram(){
+  const info = programWeekInfo();
+  const lineEl = document.getElementById('programPhaseLine');
+  const descEl = document.getElementById('programPhaseDesc');
+  const trackEl = document.getElementById('phaseTrack');
+
+  let activeWeek = info.weekNo;
+  if(info.state === 'before'){
+    lineEl.textContent = `Program startuje ${fmtDate(PROGRAM_START)} — do tego czasu trenuj wg dowolnego schematu poniżej, żeby się rozkręcić.`;
+    descEl.textContent = PHASES[0].desc;
+    activeWeek = 0;
+  } else if(info.state === 'after'){
+    lineEl.textContent = `Cykl 13-tygodniowy zakończony (${fmtDate(PROGRAM_START)} – 01.11.2026) 🎉`;
+    descEl.textContent = 'Czas na podsumowanie i ewentualne wyznaczenie kolejnego cyklu z nowymi celami obciążeń.';
+    activeWeek = PROGRAM_WEEKS + 1;
+  } else {
+    const phase = phaseForWeek(info.weekNo);
+    lineEl.textContent = `Tydzień ${info.weekNo} / ${PROGRAM_WEEKS} · ${phase.name}`;
+    descEl.textContent = phase.desc;
+  }
+
+  trackEl.innerHTML = '';
+  for(let i=1;i<=PROGRAM_WEEKS;i++){
+    const seg = document.createElement('div');
+    seg.className = 'phase-seg';
+    if(i < activeWeek) seg.classList.add('past');
+    if(i === activeWeek) seg.classList.add('active');
+    trackEl.appendChild(seg);
+  }
+}
+
+const STORAGE_KEY = 'aga_plan_v2';
+const DAY_PATTERNS = [
+  {1:'A', 3:'B', 5:'C'},
+  {1:'B', 3:'C', 5:'A'},
+  {1:'C', 3:'A', 5:'B'},
+];
+const DAY_NAMES = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+const DAY_NAMES_SHORT = ['Nd','Pon','Wt','Śr','Czw','Pt','Sob'];
+
+function dateKey(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function fmtShort(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}`; }
+function sameDay(a,b){ return dateKey(a)===dateKey(b); }
+
+function workoutIdForDate(date, weekIndex){
+  const dow = date.getDay(); // 0 Sun .. 6 Sat
+  if(dow === 0) return 'R';
+  if(dow === 6) return 'run';
+  const pattern = DAY_PATTERNS[(weekIndex-1) % 3];
+  return pattern[dow] || null;
+}
+
+function buildSchedule(){
+  const weeks = [];
+  for(let w=0; w<PROGRAM_WEEKS; w++){
+    const weekIndex = w+1;
+    const days = [];
+    for(let i=0;i<7;i++){
+      const date = new Date(PROGRAM_START);
+      date.setDate(date.getDate() + w*7 + i);
+      days.push({ date, weekIndex, workoutId: workoutIdForDate(date, weekIndex) });
+    }
+    weeks.push({ weekIndex, days, phase: phaseForWeek(weekIndex) });
+  }
+  return weeks;
+}
+const SCHEDULE = buildSchedule();
+const WORKOUT_BY_ID = Object.fromEntries(WORKOUTS.map(w=>[w.id, w]));
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return { sessions: {}, openWeeks: {} };
+    const parsed = JSON.parse(raw);
+    if(!parsed.sessions) parsed.sessions = {};
+    if(!parsed.openWeeks) parsed.openWeeks = {};
+    return parsed;
+  }catch(e){ return { sessions:{}, openWeeks:{} }; }
+}
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+
+let state = loadState();
+let currentFilter = 'all';
+
+function toggleDone(key){
+  state.sessions[key] = !state.sessions[key];
+  saveState();
+  renderSchedule();
+  renderProgressBar();
+}
+
+function toggleWeek(weekIndex){
+  state.openWeeks[weekIndex] = !state.openWeeks[weekIndex];
+  saveState();
+  renderSchedule();
+}
+
+function trainingDaysTotal(){
+  let total = 0;
+  SCHEDULE.forEach(wk => wk.days.forEach(d => { if(d.workoutId) total++; }));
+  return total;
+}
+function trainingDaysDone(){
+  let done = 0;
+  SCHEDULE.forEach(wk => wk.days.forEach(d => { if(d.workoutId && state.sessions[dateKey(d.date)]) done++; }));
+  return done;
+}
+
+function renderProgressBar(){
+  const total = trainingDaysTotal();
+  const done = trainingDaysDone();
+  document.getElementById('progressCount').textContent = `${done} / ${total}`;
+  document.getElementById('progressFill').style.width = total ? `${(done/total*100).toFixed(1)}%` : '0%';
+}
+
+function exerciseHtml(w){
+  const exRows = w.exercises.map(ex => `
+    <div class="ex">
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-stats">
+        <span class="stat">${ex.sets} serie</span>
+        <span class="stat">${ex.reps}</span>
+        <span class="stat">przerwa ${ex.rest}</span>
+        <span class="stat">${ex.load}</span>
+      </div>
+      <div class="ex-cue">${ex.cue}</div>
+    </div>
+  `).join('');
+  return `
+    <div class="warmup"><b>Rozgrzewka</b><br>${w.warmup}</div>
+    ${exRows}
+    <div class="cardio-block"><span class="lbl">Element cardio</span><p>${w.cardioNote}</p></div>
+  `;
+}
+
+function renderSchedule(){
+  const container = document.getElementById('scheduleContainer');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const openDayKeysBefore = Array.from(container.querySelectorAll('.card.open[data-date]')).map(c=>c.dataset.date);
+  container.innerHTML = '';
+
+  SCHEDULE.forEach(week => {
+    const hasVisibleDay = currentFilter==='all' || week.days.some(d => d.workoutId===currentFilter);
+    if(!hasVisibleDay) return;
+
+    const isTodayWeek = week.days.some(d => sameDay(d.date, today));
+    const isOpen = state.openWeeks[week.weekIndex] !== undefined ? state.openWeeks[week.weekIndex] : isTodayWeek;
+
+    const wb = document.createElement('div');
+    wb.className = 'week-block' + (isOpen ? ' open' : '') + (isTodayWeek ? ' today-week' : '');
+
+    const dayRows = week.days.map(d => {
+      const key = dateKey(d.date);
+      const label = `${DAY_NAMES_SHORT[d.date.getDay()]}, ${fmtShort(d.date)}`;
+      if(!d.workoutId){
+        return `<div class="rest-row"><div class="rest-date">${label}</div><div class="rest-label">Dzień wolny — odpoczynek lub luźny spacer</div></div>`;
+      }
+      if(currentFilter!=='all' && d.workoutId!==currentFilter){
+        return '';
+      }
+      const w = WORKOUT_BY_ID[d.workoutId];
+      const isDone = !!state.sessions[key];
+      const wasOpen = openDayKeysBefore.includes(key);
+      return `
+        <div class="card ${w.required?'required':''} ${isDone?'done-card':''} ${wasOpen?'open':''}" data-date="${key}">
+          <div class="card-head">
+            <div class="check-toggle ${isDone?'checked':''}" data-check-date="${key}">✓</div>
+            <div class="tag-badge" data-toggle-date="${key}">${w.badge}</div>
+            <div class="card-head-text" data-toggle-date="${key}">
+              <div class="day-label">${label}</div>
+              <div class="card-title">${w.title}</div>
+              <div class="card-meta">${w.meta}<span class="dot">·</span>${w.required?'obowiązkowy':'zaplanowany'}</div>
+            </div>
+            <div class="chev" data-toggle-date="${key}">▾</div>
+          </div>
+          <div class="card-body">
+            ${exerciseHtml(w)}
+            <div class="card-actions">
+              <div class="status-line ${isDone?'on':''}"><span class="dot-ind"></span>${isDone ? 'Wykonano' : 'Jeszcze nie wykonano — zaznacz ✓'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    wb.innerHTML = `
+      <div class="week-head" data-week-toggle="${week.weekIndex}">
+        <div class="week-head-left">
+          <div class="week-num">Tydzień ${week.weekIndex}</div>
+          <div class="week-dates">${fmtShort(week.days[0].date)} – ${fmtShort(week.days[6].date)}.${week.days[6].date.getFullYear()}</div>
+        </div>
+        <div class="week-phase">${week.phase.name.replace(/Faza [IV]+ — /,'')}</div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="week-body">${dayRows}</div>
+    `;
+    container.appendChild(wb);
+  });
+
+  container.querySelectorAll('[data-week-toggle]').forEach(el=>{
+    el.addEventListener('click', ()=> toggleWeek(el.dataset.weekToggle));
+  });
+  container.querySelectorAll('[data-toggle-date]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      el.closest('.card').classList.toggle('open');
+    });
+  });
+  container.querySelectorAll('[data-check-date]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      toggleDone(el.dataset.checkDate);
+    });
+  });
+}
+
+document.getElementById('filters').addEventListener('click', (e)=>{
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  currentFilter = chip.dataset.filter;
+  renderSchedule();
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Wyzerować cały zapisany postęp programu (wszystkie tygodnie)?')){
+    state.sessions = {};
+    saveState();
+    renderSchedule();
+    renderProgressBar();
+  }
+});
+
+renderSchedule();
+renderProgressBar();
+renderProgram();
+</script>
+</body>
+</html>
